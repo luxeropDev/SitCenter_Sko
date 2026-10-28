@@ -1,0 +1,34 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "frontend",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "dev",
+        "--prefix",
+        "frontend"
+      ],
+      "port": 5173
+    },
+    {
+      "name": "backend-qa",
+      "runtimeExecutable": "bash",
+      "runtimeArgs": [
+        "-c",
+        "cd backend && DATABASE_URL=sqlite:///./data/qa.db SEED_ON_STARTUP=true .venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8010"
+      ],
+      "port": 8010
+    },
+    {
+      "name": "frontend-qa",
+      "runtimeExecutable": "bash",
+      "runtimeArgs": [
+        "-c",
+        "cd frontend && VITE_API_PROXY=http://127.0.0.1:8010 npx vite --port 5180 --strictPort"
+      ],
+      "port": 5180
+    }
+  ]
+}

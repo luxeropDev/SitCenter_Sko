@@ -1,0 +1,26 @@
+# Development/demo Compose (SQLite on a named volume, demo seed enabled).
+#   docker compose up --build      -> API :8000, UI :5173
+# For production use docker-compose.prod.yml (PostgreSQL, migrations, no demo seed).
+services:
+  api:
+    build: ./backend
+    environment:
+      APP_ENV: development
+      DATABASE_URL: sqlite:////data/urpaq.db
+      SECRET_KEY: ${SECRET_KEY:-dev-only-insecure-secret-change-me}
+      INGEST_API_KEY: ${INGEST_API_KEY:-dev-ingest-key-change-me}
+      CORS_ORIGINS: http://localhost:5173,http://127.0.0.1:5173
+      SIMULATOR_MODE: embedded
+      SEED_ON_STARTUP: "true"
+    volumes:
+      - urpaq-data:/data
+    ports:
+      - "8000:8000"
+  web:
+    build: ./frontend
+    depends_on:
+      - api
+    ports:
+      - "5173:80"
+volumes:
+  urpaq-data:

@@ -1,0 +1,203 @@
+@import "tailwindcss";
+@import "leaflet/dist/leaflet.css";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ---------------------------------------------------------------------------
+   Design tokens — XAVAMOS Digital Urpaq
+   Apple HIG-inspired: calm neutral surfaces, one accent, semantic risk colors,
+   8px spacing grid, 3 control heights, restrained radii and shadows.
+   Breakpoints (Tailwind defaults): sm 640 · md 768 · lg 1024 · xl 1280 · 2xl 1536
+   --------------------------------------------------------------------------- */
+@theme {
+  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter", "Segoe UI", Roboto, system-ui, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-fg: var(--fg);
+  --color-fg-muted: var(--fg-muted);
+  --color-fg-subtle: var(--fg-subtle);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-fg: var(--accent-fg);
+  --color-accent-soft: var(--accent-soft);
+  --color-ring: var(--accent);
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
+
+  --color-risk-low: var(--risk-low);
+  --color-risk-low-soft: var(--risk-low-soft);
+  --color-risk-medium: var(--risk-medium);
+  --color-risk-medium-soft: var(--risk-medium-soft);
+  --color-risk-high: var(--risk-high);
+  --color-risk-high-soft: var(--risk-high-soft);
+  --color-risk-unknown: var(--risk-unknown);
+  --color-risk-unknown-soft: var(--risk-unknown-soft);
+
+  --radius-xs: 6px;
+  --radius-sm: 8px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 18px;
+  --radius-2xl: 24px;
+
+  --shadow-xs: 0 1px 1px rgb(17 24 39 / 0.04);
+  --shadow-card: 0 1px 2px rgb(17 24 39 / 0.04), 0 1px 3px rgb(17 24 39 / 0.05);
+  --shadow-raised: 0 4px 12px rgb(17 24 39 / 0.08), 0 1px 3px rgb(17 24 39 / 0.05);
+  --shadow-pop: 0 12px 32px rgb(17 24 39 / 0.14), 0 2px 8px rgb(17 24 39 / 0.06);
+
+  --spacing-control-sm: 2rem;      /* 32px */
+  --spacing-control: 2.5rem;       /* 40px */
+  --spacing-control-lg: 2.75rem;   /* 44px — touch target */
+  --spacing-sidebar: 17rem;        /* 272px */
+  --spacing-sidebar-rail: 4.5rem;  /* 72px */
+  --spacing-topbar: 3.75rem;       /* 60px */
+
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --duration-fast: 120ms;
+  --duration-base: 200ms;
+  --duration-slow: 320ms;
+
+  --animate-fade-in: fade-in var(--duration-base) var(--ease-out) both;
+  --animate-slide-in-left: slide-in-left var(--duration-slow) var(--ease-out) both;
+  --animate-slide-in-right: slide-in-right var(--duration-slow) var(--ease-out) both;
+  --animate-slide-in-up: slide-in-up var(--duration-slow) var(--ease-out) both;
+  --animate-scale-in: scale-in var(--duration-base) var(--ease-out) both;
+}
+
+:root {
+  --bg: #f5f5f7;
+  --surface: #ffffff;
+  --surface-2: #f2f2f5;
+  --surface-3: #e8e8ed;
+  --border: #e3e3e8;
+  --border-strong: #c9c9d1;
+  --fg: #1d1d1f;
+  --fg-muted: #515154;
+  --fg-subtle: #6e6e73;
+  --accent: #0a5fd9;
+  --accent-hover: #0950b8;
+  --accent-fg: #ffffff;
+  --accent-soft: #e6effd;
+  --success: #1f7a3e;
+  --success-soft: #e3f4e8;
+  --risk-low: #1f7a3e;
+  --risk-low-soft: #e3f4e8;
+  --risk-medium: #b25e00;
+  --risk-medium-soft: #fff1dc;
+  --risk-high: #c81e1e;
+  --risk-high-soft: #fde6e6;
+  --risk-unknown: #6e6e73;
+  --risk-unknown-soft: #ececf0;
+  color-scheme: light;
+}
+
+.dark {
+  --bg: #0b0c10;
+  --surface: #15171c;
+  --surface-2: #1c1f26;
+  --surface-3: #262a33;
+  --border: #272b34;
+  --border-strong: #3a404b;
+  --fg: #f2f2f5;
+  --fg-muted: #b3b7c2;
+  --fg-subtle: #878c99;
+  --accent: #3d8bff;
+  --accent-hover: #5f9fff;
+  --accent-fg: #07101f;
+  --accent-soft: #15284a;
+  --success: #3fcf72;
+  --success-soft: #0f2a1a;
+  --risk-low: #3fcf72;
+  --risk-low-soft: #0f2a1a;
+  --risk-medium: #f5a524;
+  --risk-medium-soft: #332208;
+  --risk-high: #ff5c5c;
+  --risk-high-soft: #3a1414;
+  --risk-unknown: #9a9fab;
+  --risk-unknown-soft: #22262e;
+  color-scheme: dark;
+}
+
+* { border-color: var(--border); }
+html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  line-height: 1.45;
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11", "tnum";
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  overflow-x: hidden;
+}
+button, input, select, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 6px; }
+::selection { background: color-mix(in srgb, var(--accent) 22%, transparent); }
+.tnum { font-variant-numeric: tabular-nums; }
+.text-balance { text-wrap: balance; }
+.scrollbar-thin { scrollbar-width: thin; scrollbar-color: var(--border-strong) transparent; }
+
+/* Subtle, native-feeling scrollbars */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-thumb { background: var(--border-strong); border: 3px solid transparent; border-radius: 8px; background-clip: padding-box; }
+::-webkit-scrollbar-track { background: transparent; }
+
+/* Leaflet integration */
+.leaflet-container { background: var(--surface-2); font-family: inherit; }
+.dark .leaflet-tile { filter: brightness(0.62) contrast(1.08) saturate(0.7) hue-rotate(5deg); }
+.leaflet-popup-content-wrapper, .leaflet-popup-tip { background: var(--surface); color: var(--fg); box-shadow: var(--shadow-pop); border-radius: 12px; border: 1px solid var(--border); }
+.leaflet-popup-content { margin: 12px 14px; font-size: 13px; line-height: 1.4; }
+.leaflet-control-zoom { border: 1px solid var(--border) !important; border-radius: 10px !important; overflow: hidden; box-shadow: var(--shadow-card) !important; }
+.leaflet-control-zoom a { background: var(--surface) !important; color: var(--fg) !important; border-color: var(--border) !important; width: 32px !important; height: 32px !important; line-height: 32px !important; }
+.leaflet-control-zoom a:hover { background: var(--surface-2) !important; }
+.leaflet-control-attribution { background: color-mix(in srgb, var(--surface) 85%, transparent) !important; color: var(--fg-subtle) !important; font-size: 10px; border-radius: 6px 0 0 0; }
+.leaflet-control-attribution a { color: var(--accent) !important; }
+.station-marker { background: transparent; border: 0; }
+.station-marker .pin { display:flex; align-items:center; justify-content:center; width:30px; height:30px; border-radius:50%; border:2px solid #fff; box-shadow:0 2px 8px rgb(0 0 0 / .32); color:#fff; font-size:12px; font-weight:700; transition: transform var(--duration-fast) var(--ease-standard); }
+.station-marker .pin.square { border-radius:7px; }
+.station-marker .pin.diamond { border-radius:6px; transform: rotate(45deg); }
+.station-marker .pin.diamond > * { transform: rotate(-45deg); }
+.station-marker .pin.ring { animation: pulse 1.8s ease-out infinite; }
+.station-marker .pin.selected { outline: 3px solid color-mix(in srgb, var(--accent) 60%, transparent); outline-offset: 2px; }
+.station-marker:hover .pin { transform: scale(1.12); }
+.station-marker:hover .pin.diamond { transform: rotate(45deg) scale(1.12); }
+@keyframes pulse { 0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--risk-high) 55%, transparent); } 100% { box-shadow: 0 0 0 16px transparent; } }
+
+/* Recharts */
+.recharts-cartesian-grid line { stroke: var(--border); }
+.recharts-text { fill: var(--fg-subtle); font-size: 11px; }
+.recharts-default-tooltip { background: var(--surface) !important; border: 1px solid var(--border) !important; border-radius: 10px !important; box-shadow: var(--shadow-pop); }
+.recharts-tooltip-cursor { stroke: var(--border-strong); }
+.recharts-legend-item-text { color: var(--fg-muted) !important; }
+
+/* Motion */
+@keyframes fade-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+@keyframes slide-in-left { from { transform: translateX(-100%); } to { transform: none; } }
+@keyframes slide-in-right { from { transform: translateX(100%); } to { transform: none; } }
+@keyframes slide-in-up { from { transform: translateY(100%); } to { transform: none; } }
+@keyframes scale-in { from { opacity: 0; transform: scale(0.98); } to { opacity: 1; transform: none; } }
+@keyframes shimmer { 100% { transform: translateX(100%); } }
+@keyframes risk-flash { 0%, 100% { box-shadow: 0 0 0 0 transparent; } 40% { box-shadow: 0 0 0 4px color-mix(in srgb, var(--risk-high) 35%, transparent); } }
+.animate-in { animation: fade-in var(--duration-base) var(--ease-out) both; }
+.animate-risk-flash { animation: risk-flash 1.2s ease-out 1; }
+.skeleton { position: relative; overflow: hidden; background: var(--surface-2); }
+.skeleton::after { content: ""; position: absolute; inset: 0; transform: translateX(-100%); background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--fg) 6%, transparent), transparent); animation: shimmer 1.4s infinite; }
+.live-dot { position: relative; }
+.live-dot::after { content: ""; position: absolute; inset: -3px; border-radius: 9999px; border: 2px solid currentColor; opacity: 0; animation: live-ring 1.8s ease-out infinite; }
+@keyframes live-ring { 0% { transform: scale(0.6); opacity: 0.8; } 100% { transform: scale(1.6); opacity: 0; } }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }
+  .live-dot::after, .station-marker .pin.ring { animation: none !important; }
+}

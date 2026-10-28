@@ -1,0 +1,62 @@
+# Production-profile Compose: PostgreSQL + API (runs migrations on start) + nginx serving the built SPA.
+#   cp .env.prod.example .env.prod && edit it
+#   docker compose -f docker-compose.prod.yml --env-file .env.prod up -d --build
+# TLS is NOT terminated here — put Caddy/Traefik/a cloud load balancer in front of `web` (port 8080).
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: urpaq
+      POSTGRES_USER: urpaq
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env.prod}
+    volumes:
+      - urpaq-pg:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U urpaq -d urpaq"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  api:
+    build: ./backend
+    environment:
+      APP_ENV: production
+      DATABASE_URL: postgresql+psycopg://urpaq:${POSTGRES_PASSWORD}@db:5432/urpaq
+      SECRET_KEY: ${SECRET_KEY:?set SECRET_KEY in .env.prod}
+      INGEST_API_KEY: ${INGEST_API_KEY:?set INGEST_API_KEY in .env.prod}
+      CORS_ORIGINS: ${PUBLIC_ORIGIN:?set PUBLIC_ORIGIN in .env.prod}
+      SIMULATOR_MODE: ${SIMULATOR_MODE:-embedded}
+      SIMULATOR_AUTOSTART: "false"
+      SEED_ON_STARTUP: "false"
+      ENABLE_DOCS: ${ENABLE_DOCS:-false}
+      TRUST_PROXY_HEADERS: "true"
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+    depends_on:
+      db:
+        condition: service_healthy
+    # one worker: the embedded simulator loop must exist exactly once
+    command: ["sh", "-c", "python -m scripts.check_config && alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 1 --proxy-headers --forwarded-allow-ips='*'"]
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8000/api/health/ready').status==200 else 1)"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    restart: unless-stopped
+    stop_grace_period: 20s
+
+  web:
+    build:
+      context: ./frontend
+      args:
+        VITE_SHOW_DEMO_ACCOUNTS: ${VITE_SHOW_DEMO_ACCOUNTS:-false}
+    depends_on:
+      api:
+        condition: service_healthy
+    ports:
+      - "${WEB_PORT:-8080}:80"
+    restart: unless-stopped
+
+volumes:
+  urpaq-pg:
